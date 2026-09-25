@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Arcade Screen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Press Start 2P', cursive;
+            color: #fff;
+        }
+
+        .arcade-scene {
+            position: relative;
+            width: 1080px;
+            height: 1080px;
+            background-image: url('https://imgur.com/FNG9LNy.jpg');
+            background-color: #222; 
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.8);
+            overflow: hidden;
+        }
+
+        .arcade-screen-container {
+            position: absolute;
+            top: 53%;
+            left: 50%;
+            width: 44%;
+            height: 31%;
+            transform: translate(-50%, -50%) perspective(800px) rotateX(6deg);
+            
+            background-color: #000;
+            border-radius: 25px;
+            box-shadow: 
+                inset 0 0 25px rgba(0, 0, 0, 0.9), 
+                inset 0 0 10px rgba(255, 255, 255, 0.1),
+                0 0 10px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        .crt-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.3) 50%
+            ), linear-gradient(
+                90deg, 
+                rgba(255, 0, 0, 0.06), 
+                rgba(0, 255, 0, 0.02), 
+                rgba(0, 0, 255, 0.06)
+            );
+            background-size: 100% 4px, 3px 100%;
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        .flash-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #fff;
+            opacity: 0;
+            z-index: 40;
+            pointer-events: none;
+        }
+
+        .booting .flash-overlay {
+            animation: crt-boot 0.8s ease-out forwards;
+        }
+
+        @keyframes crt-boot {
+            0% { opacity: 0; background: #fff; }
+            10% { opacity: 1; background: #fff; }
+            20% { opacity: 1; background: #ff107a; } /* Neon magenta flash */
+            30% { opacity: 1; background: #fff; }
+            100% { opacity: 0; background: #fff; }
+        }
+
+        .start-screen {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 30;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .insert-coin-text {
+            color: #ff107a;
+            font-size: 14px;
+            text-shadow: 0 0 10px #ff107a, 0 0 20px #ff107a;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+
+        .menu-screen {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            padding: 15px;
+            box-sizing: border-box;
+            background-color: #0c0c16;
+            z-index: 10;
+        }
+
+        .menu-screen.active {
+            display: flex;
+            animation: fade-in 0.3s ease-in forwards;
+            animation-delay: 0.4s; /* Wait for flash */
+            opacity: 0;
+        }
+
+        @keyframes fade-in {
+            to { opacity: 1; }
+        }
+
+        .header {
+            text-align: center;
+            font-size: 12px;
+            color: #ffea00;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px #000;
+        }
+
+        .tile-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            flex: 1;
+        }
+
+        .tile {
+            position: relative;
+            background: #1a1a24;
+            border: 2px solid #445;
+            border-radius: 5px;
+            cursor: pointer;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+            transition: transform 0.1s;
+        }
+
+        .tile:hover {
+            border-color: #ff107a;
+            transform: scale(1.05);
+            z-index: 20;
+        }
+
+        .tile-default {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+            opacity: 1;
+            transition: opacity 0.3s;
+        }
+
+        .tile-emoji { font-size: 20px; margin-bottom: 5px; }
+        .tile-name {
+            font-size: 6px; 
+            text-align: center;
+            line-height: 1.3;
+            text-shadow: 1px 1px #000;
+        }
+
+        .tile-hover {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 5px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tile-hover img { width: 100%; height: 100%; object-fit: contain; }
+        .tile:hover .tile-default { opacity: 0; }
+        .tile:hover .tile-hover { opacity: 1; }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .btn {
+            background: transparent;
+            border: none;
+            color: #00ffff;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            cursor: pointer;
+            padding: 5px;
+            text-shadow: 1px 1px #000;
+        }
+        
+        .btn:hover:not(:disabled) { color: #ff107a; }
+        .btn:disabled { color: #555; cursor: not-allowed; }
+        #page-indicator { font-size: 8px; color: #aaa; }
+
+        .maximized-view {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(10, 10, 20, 0.95);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .maximized-view.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .max-logo {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
+            object-fit: contain;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+            animation: float 2s infinite ease-in-out alternate;
+        }
+
+        @keyframes float {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
+        }
+
+        .max-text {
+            font-size: 12px;
+            color: #ff107a;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .close-hint { font-size: 8px; color: #00ffff; animation: blink 1s infinite; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <!-- 
+      Commented out retro audio tag. 
+      To use, uncomment and replace the src with your open-source .mp3 link!
+      <audio id="arcade-bgm" loop preload="auto">
+          <source src="YOUR_RETRO_MUSIC_LINK_HERE.mp3" type="audio/mpeg">
+      </audio> 
+    -->
+
+    <div class="arcade-scene">
+        <div class="arcade-screen-container" id="screen-container">
+            <div class="crt-overlay"></div>
+            <div class="flash-overlay"></div>
+            
+            <!-- Default "Insert Coin" State -->
+            <div class="start-screen" id="start-screen">
+                <div class="insert-coin-text">INSERT COIN</div>
+            </div>
+
+            <!-- Menu Interface (Hidden initially) -->
+            <div class="menu-screen" id="menu-screen">
+                <div class="header">SELECT MEAL</div>
+                
+                <div class="tile-grid" id="tile-grid">
+                    <!-- Tiles injected here via JS -->
+                </div>
+
+                <div class="footer">
+                    <button class="btn" id="btn-prev">◀ PREV</button>
+                    <span id="page-indicator">PAGE 1/3</span>
+                    <button class="btn" id="btn-next">NEXT ▶</button>
+                </div>
+            </div>
+
+            <!-- Maximized State Interface -->
+            <div class="maximized-view" id="maximized-view">
+                <img id="max-logo" class="max-logo" src="" alt="Logo">
+                <div id="max-text" class="max-text">LOADING...</div>
+                <div class="close-hint" id="btn-close">CLICK TO CLOSE</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data mapping exactly to your requested layout
+        const sponsors = [
+            // Page 1 (7 items)
+            { name: "Papa Johns", emoji: "🍕", url: "https://imgur.com/8Meu2XK.png" },
+            { name: "Peet's Coffee", emoji: "☕", url: "https://imgur.com/m2s2Eiu.png" },
+            { name: "Texas Roadhouse", emoji: "🥩", url: "https://imgur.com/bZVFEjY.png" },
+            { name: "Foxtail Coffee", emoji: "🦊", url: "https://imgur.com/S9Qoil7.png" },
+            { name: "Cooper's Hawk", emoji: "🍷", url: "https://imgur.com/0lNdN15.png" },
+            { name: "Golden Corral", emoji: "🍽️", url: "https://imgur.com/mJRbA9q.png" },
+            { name: "City BBQ", emoji: "🍖", url: "https://imgur.com/Lq2080F.png" },
+            
+            // Page 2 (7 items)
+            { name: "Starbucks", emoji: "☕", url: "https://imgur.com/GVEAzzj.png" },
+            { name: "Walk-On's", emoji: "🏈", url: "https://imgur.com/FZNq2rw.png" },
+            { name: "Sweetgreen", emoji: "🥗", url: "https://imgur.com/rEBSQ19.png" },
+            { name: "Firehouse Subs", emoji: "🚒", url: "https://imgur.com/PT5kluf.png" },
+            { name: "Scooters Coffee", emoji: "🛵", url: "https://imgur.com/NEo0qBW.png" },
+            { name: "Cracker Barrel", emoji: "🍞", url: "https://imgur.com/rHbp3ON.png" }, // Biscuit/Bread
+            { name: "Jack in the Box", emoji: "🍔", url: "https://imgur.com/DeDt6tl.png" },
+            
+            // Page 3 (8 items)
+            { name: "Luna Grill", emoji: "🥙", url: "https://imgur.com/qHeVKSP.png" },
+            { name: "Circle K", emoji: "⛽", url: "https://imgur.com/eAeVwtq.png" },
+            { name: "Chicken Salad Chick", emoji: "🐔", url: "https://imgur.com/4Lu4fmB.png" },
+            { name: "Potbelly", emoji: "🥪", url: "https://imgur.com/LdEZt4S.png" },
+            { name: "Sbarro", emoji: "🍕", url: "https://imgur.com/2grNRLl.png" },
+            { name: "Denny's", emoji: "🥞", url: "https://imgur.com/eyl7t3P.png" }, // Pancakes
+            { name: "Marco's Pizza", emoji: "🍕", url: "https://imgur.com/4u0PvfJ.png" },
+            { name: "Dave & Busters", emoji: "🕹️", url: "https://imgur.com/8eJ4rMB.png" }
+        ];
+
+        // Pagination setup
+        const layout = [7, 7, 8];
+        let currentPage = 0;
+
+        // DOM Elements
+        const screenContainer = document.getElementById('screen-container');
+        const startScreen = document.getElementById('start-screen');
+        const menuScreen = document.getElementById('menu-screen');
+        const grid = document.getElementById('tile-grid');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        const pageIndicator = document.getElementById('page-indicator');
+        
+        const maxView = document.getElementById('maximized-view');
+        const maxLogo = document.getElementById('max-logo');
+        const maxText = document.getElementById('max-text');
+
+        // Insert Coin / Boot Logic
+        startScreen.addEventListener('click', () => {
+            // Trigger flash animation
+            screenContainer.classList.add('booting');
+            
+            // Hide start screen, show menu screen
+            startScreen.style.opacity = '0';
+            setTimeout(() => {
+                startScreen.style.display = 'none';
+                menuScreen.classList.add('active');
+                renderGrid();
+                
+                // Play music if you uncommented the audio tag
+                const bgMusic = document.getElementById('arcade-bgm');
+                if(bgMusic) {
+                    bgMusic.volume = 0.5;
+                    bgMusic.play().catch(e => console.log("Audio play blocked until interaction."));
+                }
+            }, 300); 
+        });
+
+        function renderGrid() {
+            grid.innerHTML = '';
+            
+            let startIndex = 0;
+            for(let i = 0; i < currentPage; i++) {
+                startIndex += layout[i];
+            }
+            const count = layout[currentPage];
+            const pageData = sponsors.slice(startIndex, startIndex + count);
+
+            pageData.forEach(sponsor => {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                
+                tile.innerHTML = `
+                    <div class="tile-default">
+                        <div class="tile-emoji">${sponsor.emoji}</div>
+                        <div class="tile-name">${sponsor.name}</div>
+                    </div>
+                    <div class="tile-hover">
+                        <img src="${sponsor.url}" alt="${sponsor.name}">
+                    </div>
+                `;
+
+                tile.addEventListener('click', () => {
+                    maxLogo.src = sponsor.url;
+                    maxText.innerText = `LOADING\n${sponsor.name.toUpperCase()}...`;
+                    maxView.classList.add('active');
+                });
+
+                grid.appendChild(tile);
+            });
+
+            // Update UI state
+            pageIndicator.innerText = `PAGE ${currentPage + 1}/3`;
+            btnPrev.disabled = currentPage === 0;
+            btnNext.disabled = currentPage === layout.length - 1;
+        }
+
+        btnPrev.addEventListener('click', () => {
+            if (currentPage > 0) {
+                currentPage--;
+                renderGrid();
+            }
+        });
+
+        btnNext.addEventListener('click', () => {
+            if (currentPage < layout.length - 1) {
+                currentPage++;
+                renderGrid();
+            }
+        });
+
+        maxView.addEventListener('click', () => {
+            maxView.classList.remove('active');
+            setTimeout(() => {
+                if(!maxView.classList.contains('active')){
+                     maxLogo.src = '';
+                }
+            }, 300);
+        });
+
+    </script>
+</body>
+</html>
