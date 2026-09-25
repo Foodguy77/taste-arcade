@@ -9,25 +9,37 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #111;
+            background-color: #050505;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             font-family: 'Press Start 2P', cursive;
             color: #fff;
+            overflow: hidden; /* Prevents scrollbars when scaling */
+        }
+
+        /* Scalable Outer Wrapper for Mobile Responsiveness */
+        .arcade-scaler {
+            width: 1080px;
+            height: 1080px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform-origin: center center;
         }
 
         .arcade-scene {
             position: relative;
             width: 1080px;
             height: 1080px;
-            background-image: url('https://imgur.com/FNG9LNy.jpg');
+            background-image: url('https://imgur.com/AIRoh9k.jpg');
             background-color: #222; 
             background-size: cover;
             background-position: center;
             box-shadow: 0 10px 50px rgba(0,0,0,0.8);
             overflow: hidden;
+            flex-shrink: 0;
         }
 
         .arcade-screen-container {
@@ -84,7 +96,7 @@
         @keyframes crt-boot {
             0% { opacity: 0; background: #fff; }
             10% { opacity: 1; background: #fff; }
-            20% { opacity: 1; background: #ff107a; } /* Neon magenta flash */
+            20% { opacity: 1; background: #ff107a; }
             30% { opacity: 1; background: #fff; }
             100% { opacity: 0; background: #fff; }
         }
@@ -114,7 +126,7 @@
         }
 
         .menu-screen {
-            display: none; /* Hidden by default */
+            display: none;
             flex-direction: column;
             width: 100%;
             height: 100%;
@@ -127,7 +139,7 @@
         .menu-screen.active {
             display: flex;
             animation: fade-in 0.3s ease-in forwards;
-            animation-delay: 0.4s; /* Wait for flash */
+            animation-delay: 0.4s;
             opacity: 0;
         }
 
@@ -281,46 +293,61 @@
 </head>
 <body>
 
-  <audio id="arcade-bgm" loop preload="auto">
-    <source src="ChillLofiR.mp3" type="audio/mpeg">
-</audio>
+    <!-- Audio Element -->
+    <audio id="arcade-bgm" loop preload="auto">
+        <source src="ChillLofiR.mp3" type="audio/mpeg">
+    </audio>
 
-    <div class="arcade-scene">
-        <div class="arcade-screen-container" id="screen-container">
-            <div class="crt-overlay"></div>
-            <div class="flash-overlay"></div>
-            
-            <!-- Default "Insert Coin" State -->
-            <div class="start-screen" id="start-screen">
-                <div class="insert-coin-text">INSERT COIN</div>
-            </div>
-
-            <!-- Menu Interface (Hidden initially) -->
-            <div class="menu-screen" id="menu-screen">
-                <div class="header">SELECT MEAL</div>
+    <div class="arcade-scaler" id="arcade-scaler">
+        <div class="arcade-scene">
+            <div class="arcade-screen-container" id="screen-container">
+                <div class="crt-overlay"></div>
+                <div class="flash-overlay"></div>
                 
-                <div class="tile-grid" id="tile-grid">
-                    <!-- Tiles injected here via JS -->
+                <!-- Start Screen -->
+                <div class="start-screen" id="start-screen">
+                    <div class="insert-coin-text">INSERT COIN</div>
                 </div>
 
-                <div class="footer">
-                    <button class="btn" id="btn-prev">◀ PREV</button>
-                    <span id="page-indicator">PAGE 1/3</span>
-                    <button class="btn" id="btn-next">NEXT ▶</button>
-                </div>
-            </div>
+                <!-- Menu Screen -->
+                <div class="menu-screen" id="menu-screen">
+                    <div class="header">SELECT MEAL</div>
+                    
+                    <div class="tile-grid" id="tile-grid"></div>
 
-            <!-- Maximized State Interface -->
-            <div class="maximized-view" id="maximized-view">
-                <img id="max-logo" class="max-logo" src="" alt="Logo">
-                <div id="max-text" class="max-text">LOADING...</div>
-                <div class="close-hint" id="btn-close">CLICK TO CLOSE</div>
+                    <div class="footer">
+                        <button class="btn" id="btn-prev">◀ PREV</button>
+                        <span id="page-indicator">PAGE 1/3</span>
+                        <button class="btn" id="btn-next">NEXT ▶</button>
+                    </div>
+                </div>
+
+                <!-- Maximized View -->
+                <div class="maximized-view" id="maximized-view">
+                    <img id="max-logo" class="max-logo" src="" alt="Logo">
+                    <div id="max-text" class="max-text">LOADING...</div>
+                    <div class="close-hint" id="btn-close">CLICK TO CLOSE</div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Data mapping exactly to your requested layout
+        // Auto-Scale Logic for Mobile Responsiveness
+        function scaleArcade() {
+            const scaler = document.getElementById('arcade-scaler');
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            // Calculate scale ratio to fit 1080x1080 into screen bounds
+            const scale = Math.min(windowWidth / 1080, windowHeight / 1080, 1);
+            scaler.style.transform = `scale(${scale})`;
+        }
+
+        window.addEventListener('resize', scaleArcade);
+        window.addEventListener('load', scaleArcade);
+
+        // Sponsor Data
         const sponsors = [
             // Page 1 (7 items)
             { name: "Papa Johns", emoji: "🍕", url: "https://imgur.com/8Meu2XK.png" },
@@ -337,7 +364,7 @@
             { name: "Sweetgreen", emoji: "🥗", url: "https://imgur.com/rEBSQ19.png" },
             { name: "Firehouse Subs", emoji: "🚒", url: "https://imgur.com/PT5kluf.png" },
             { name: "Scooters Coffee", emoji: "🛵", url: "https://imgur.com/NEo0qBW.png" },
-            { name: "Cracker Barrel", emoji: "🍞", url: "https://imgur.com/rHbp3ON.png" }, // Biscuit/Bread
+            { name: "Cracker Barrel", emoji: "🍞", url: "https://imgur.com/rHbp3ON.png" },
             { name: "Jack in the Box", emoji: "🍔", url: "https://imgur.com/DeDt6tl.png" },
             
             // Page 3 (8 items)
@@ -346,16 +373,14 @@
             { name: "Chicken Salad Chick", emoji: "🐔", url: "https://imgur.com/4Lu4fmB.png" },
             { name: "Potbelly", emoji: "🥪", url: "https://imgur.com/LdEZt4S.png" },
             { name: "Sbarro", emoji: "🍕", url: "https://imgur.com/2grNRLl.png" },
-            { name: "Denny's", emoji: "🥞", url: "https://imgur.com/eyl7t3P.png" }, // Pancakes
+            { name: "Denny's", emoji: "🥞", url: "https://imgur.com/eyl7t3P.png" },
             { name: "Marco's Pizza", emoji: "🍕", url: "https://imgur.com/4u0PvfJ.png" },
             { name: "Dave & Busters", emoji: "🕹️", url: "https://imgur.com/8eJ4rMB.png" }
         ];
 
-        // Pagination setup
         const layout = [7, 7, 8];
         let currentPage = 0;
 
-        // DOM Elements
         const screenContainer = document.getElementById('screen-container');
         const startScreen = document.getElementById('start-screen');
         const menuScreen = document.getElementById('menu-screen');
@@ -368,30 +393,24 @@
         const maxLogo = document.getElementById('max-logo');
         const maxText = document.getElementById('max-text');
 
-        // Insert Coin / Boot Logic
         startScreen.addEventListener('click', () => {
-            // Trigger flash animation
             screenContainer.classList.add('booting');
-            
-            // Hide start screen, show menu screen
             startScreen.style.opacity = '0';
             setTimeout(() => {
                 startScreen.style.display = 'none';
                 menuScreen.classList.add('active');
                 renderGrid();
                 
-                // Play music if you uncommented the audio tag
                 const bgMusic = document.getElementById('arcade-bgm');
                 if(bgMusic) {
                     bgMusic.volume = 0.5;
-                    bgMusic.play().catch(e => console.log("Audio play blocked until interaction."));
+                    bgMusic.play().catch(e => console.log("Audio playback error:", e));
                 }
             }, 300); 
         });
 
         function renderGrid() {
             grid.innerHTML = '';
-            
             let startIndex = 0;
             for(let i = 0; i < currentPage; i++) {
                 startIndex += layout[i];
@@ -422,7 +441,6 @@
                 grid.appendChild(tile);
             });
 
-            // Update UI state
             pageIndicator.innerText = `PAGE ${currentPage + 1}/3`;
             btnPrev.disabled = currentPage === 0;
             btnNext.disabled = currentPage === layout.length - 1;
@@ -450,7 +468,6 @@
                 }
             }, 300);
         });
-
     </script>
 </body>
 </html>
