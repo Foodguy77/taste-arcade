@@ -16,10 +16,9 @@
             min-height: 100vh;
             font-family: 'Press Start 2P', cursive;
             color: #fff;
-            overflow: hidden; /* Prevents scrollbars when scaling */
+            overflow: hidden;
         }
 
-        /* Scalable Outer Wrapper for Mobile Responsiveness */
         .arcade-scaler {
             width: 1080px;
             height: 1080px;
@@ -44,7 +43,7 @@
 
         .arcade-screen-container {
             position: absolute;
-            top: calc(53% - 10px); /* Shifted up 10px */
+            top: calc(53% - 50px); /* Shifted up 50px */
             left: 50%;
             width: 44%;
             height: 31%;
@@ -293,7 +292,6 @@
 </head>
 <body>
 
-    <!-- Audio Element -->
     <audio id="arcade-bgm" loop preload="auto">
         <source src="ChillLofiR.mp3" type="audio/mpeg">
     </audio>
@@ -304,12 +302,10 @@
                 <div class="crt-overlay"></div>
                 <div class="flash-overlay"></div>
                 
-                <!-- Start Screen -->
                 <div class="start-screen" id="start-screen">
                     <div class="insert-coin-text">INSERT COIN</div>
                 </div>
 
-                <!-- Menu Screen -->
                 <div class="menu-screen" id="menu-screen">
                     <div class="header">SELECT MEAL</div>
                     
@@ -322,7 +318,6 @@
                     </div>
                 </div>
 
-                <!-- Maximized View -->
                 <div class="maximized-view" id="maximized-view">
                     <img id="max-logo" class="max-logo" src="" alt="Logo">
                     <div id="max-text" class="max-text">LOADING...</div>
@@ -333,13 +328,11 @@
     </div>
 
     <script>
-        // Auto-Scale Logic for Mobile Responsiveness
         function scaleArcade() {
             const scaler = document.getElementById('arcade-scaler');
             const windowWidth = window.innerWidth;
             const windowHeight = window.innerHeight;
             
-            // Calculate scale ratio to fit 1080x1080 into screen bounds
             const scale = Math.min(windowWidth / 1080, windowHeight / 1080, 1);
             scaler.style.transform = `scale(${scale})`;
         }
@@ -347,9 +340,7 @@
         window.addEventListener('resize', scaleArcade);
         window.addEventListener('load', scaleArcade);
 
-        // Sponsor Data
         const sponsors = [
-            // Page 1 (7 items)
             { name: "Papa Johns", emoji: "🍕", url: "https://imgur.com/8Meu2XK.png" },
             { name: "Peet's Coffee", emoji: "☕", url: "https://imgur.com/m2s2Eiu.png" },
             { name: "Texas Roadhouse", emoji: "🥩", url: "https://imgur.com/bZVFEjY.png" },
@@ -358,7 +349,6 @@
             { name: "Golden Corral", emoji: "🍽️", url: "https://imgur.com/mJRbA9q.png" },
             { name: "City BBQ", emoji: "🍖", url: "https://imgur.com/Lq2080F.png" },
             
-            // Page 2 (7 items)
             { name: "Starbucks", emoji: "☕", url: "https://imgur.com/GVEAzzj.png" },
             { name: "Walk-On's", emoji: "🏈", url: "https://imgur.com/FZNq2rw.png" },
             { name: "Sweetgreen", emoji: "🥗", url: "https://imgur.com/rEBSQ19.png" },
@@ -367,7 +357,6 @@
             { name: "Cracker Barrel", emoji: "🍞", url: "https://imgur.com/rHbp3ON.png" },
             { name: "Jack in the Box", emoji: "🍔", url: "https://imgur.com/DeDt6tl.png" },
             
-            // Page 3 (8 items)
             { name: "Luna Grill", emoji: "🥙", url: "https://imgur.com/qHeVKSP.png" },
             { name: "Circle K", emoji: "⛽", url: "https://imgur.com/eAeVwtq.png" },
             { name: "Chicken Salad Chick", emoji: "🐔", url: "https://imgur.com/4Lu4fmB.png" },
