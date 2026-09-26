@@ -36,6 +36,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) scale(1);
+            transition: all 0.3s ease;
         }
 
         .arcade-scene {
@@ -53,7 +54,7 @@
 
         .arcade-screen-container {
             position: absolute;
-            top: 53%; /* Reset back to original height */
+            top: 53%;
             left: 50%;
             width: 44%;
             height: 31%;
@@ -69,6 +70,20 @@
             
             display: flex;
             flex-direction: column;
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* Fullscreen Mode Override */
+        .arcade-screen-container.fullscreen-mode {
+            position: fixed;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            transform: none !important;
+            border-radius: 0 !important;
+            z-index: 9999;
+            box-shadow: none;
         }
 
         .crt-overlay {
@@ -211,6 +226,12 @@
             text-shadow: 1px 1px #000;
         }
 
+        /* Responsive adjustments for full-screen view */
+        .fullscreen-mode .tile-emoji { font-size: 32px; }
+        .fullscreen-mode .tile-name { font-size: 12px; }
+        .fullscreen-mode .header { font-size: 20px; margin-bottom: 20px; }
+        .fullscreen-mode .btn, .fullscreen-mode #page-indicator { font-size: 14px; }
+
         .tile-hover {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -232,6 +253,7 @@
             justify-content: space-between;
             align-items: center;
             margin-top: 10px;
+            gap: 5px;
         }
 
         .btn {
@@ -248,6 +270,13 @@
         .btn:hover:not(:disabled) { color: #ff107a; }
         .btn:disabled { color: #555; cursor: not-allowed; }
         #page-indicator { font-size: 8px; color: #aaa; }
+
+        .btn-fullscreen {
+            color: #ffea00;
+            border: 1px solid #ffea00;
+            border-radius: 3px;
+            padding: 3px 6px;
+        }
 
         .maximized-view {
             position: absolute;
@@ -323,6 +352,7 @@
                     <div class="footer">
                         <button class="btn" id="btn-prev">◀ PREV</button>
                         <span id="page-indicator">PAGE 1/3</span>
+                        <button class="btn btn-fullscreen" id="btn-fs">⛶ FULL</button>
                         <button class="btn" id="btn-next">NEXT ▶</button>
                     </div>
                 </div>
@@ -342,7 +372,6 @@
             const windowWidth = window.innerWidth;
             const windowHeight = window.innerHeight;
             
-            // Calculate scale ratio to fit 1080x1080 into screen bounds
             const scale = Math.min(windowWidth / 1080, windowHeight / 1080, 1);
             scaler.style.transform = `translate(-50%, -50%) scale(${scale})`;
         }
@@ -386,6 +415,7 @@
         const grid = document.getElementById('tile-grid');
         const btnPrev = document.getElementById('btn-prev');
         const btnNext = document.getElementById('btn-next');
+        const btnFs = document.getElementById('btn-fs');
         const pageIndicator = document.getElementById('page-indicator');
         
         const maxView = document.getElementById('maximized-view');
@@ -406,6 +436,16 @@
                     bgMusic.play().catch(e => console.log("Audio playback error:", e));
                 }
             }, 300); 
+        });
+
+        // Fullscreen Toggle Event
+        btnFs.addEventListener('click', () => {
+            screenContainer.classList.toggle('fullscreen-mode');
+            if (screenContainer.classList.contains('fullscreen-mode')) {
+                btnFs.innerText = '🗗 EXIT';
+            } else {
+                btnFs.innerText = '⛶ FULL';
+            }
         });
 
         function renderGrid() {
